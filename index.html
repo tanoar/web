@@ -1,0 +1,119 @@
+<!DOCTYPE html> 
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guia de Dependencias</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .search-bar {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .search-bar input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+        .result {
+            margin-top: 20px;
+        }
+        .dependencia {
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+            text-align: justify;
+            letter-spacing: 0.5px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body onload="document.getElementById('buscador').focus();">
+    <div class="container">
+        <h1 style="text-align: center;">Guia de Dependencias</h1>
+        <div class="search-bar">
+            <input type="text" id="buscador" placeholder="Buscar..." oninput="buscar()">
+            <button onclick="limpiar()">Limpiar</button>
+        </div>
+        <div id="resultados" class="result"></div>
+    </div>
+
+    <script>
+        let dependencias = [];
+
+        // Cargar el contenido del archivo datos.txt
+        fetch('datos2612.txt')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar el archivo');
+                }
+                return response.text();
+            })
+            .then(data => {
+                // Dividir el contenido del archivo en bloques por la palabra "Codigo:"
+                dependencias = data.split(/\n(?=Codigo:)/).map(dep => dep.trim());
+                mostrarDependencias(dependencias);
+            })
+            .catch(error => {
+                console.error('Hubo un problema con la carga:', error);
+            });
+
+        function highlight(text, query) {
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        function buscar() {
+            const query = document.getElementById('buscador').value.toLowerCase();
+            const resultados = document.getElementById('resultados');
+            resultados.innerHTML = '';
+
+            const filtrados = dependencias.filter(dep => dep.toLowerCase().includes(query));
+
+            if (filtrados.length > 0) {
+                filtrados.forEach(dep => {
+                    let highlightedText = dep;
+                    if (query) {
+                        highlightedText = highlight(highlightedText, query);
+                    }
+                    const div = document.createElement('div');
+                    div.className = 'dependencia';
+                    div.innerHTML = highlightedText;
+                    resultados.appendChild(div);
+                });
+            } else {
+                resultados.innerText = 'No se encontraron resultados';
+            }
+        }
+
+        function mostrarDependencias(dependencias) {
+            const resultados = document.getElementById('resultados');
+            resultados.innerHTML = '';
+            dependencias.forEach(dep => {
+                const div = document.createElement('div');
+                div.className = 'dependencia';
+                div.innerHTML = dep;
+                resultados.appendChild(div);
+            });
+        }
+
+        function limpiar() {
+            document.getElementById('buscador').value = '';
+            mostrarDependencias(dependencias);
+            document.getElementById('buscador').focus();
+        }
+    </script>
+</body>
+</html>
